@@ -2,13 +2,12 @@ FROM golang:1.22 as build
 WORKDIR /workspace
 COPY . .
 RUN mkdir state
-RUN apt update && apt install unzip musl-tools ca-certificates -y
-RUN update-ca-certificates
+RUN apt update && apt install unzip musl-tools -y
 RUN make build-docker
 
-FROM gcr.io/distroless/static:nonroot
+FROM alpine
 WORKDIR /
-COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+RUN apk add -u ca-certificates
 COPY --from=build /workspace/bin/bitwarden-sdk-server .
 COPY --from=build --chown=65532:65532 /workspace/state/ ./state/
 
